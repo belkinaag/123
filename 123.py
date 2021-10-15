@@ -9,8 +9,8 @@ bits = len(dac)
 levels = 2**bits
 troyka = 17
 comp = 4
-i = 0
-j = 0
+i = 0 # Счетчик времени при зарядке
+j = 0 # Счетчик времени при разрядке
 napr = [] #список, содержащий значения напряжения
 
 GPIO.setmode(GPIO.BCM)
@@ -57,20 +57,22 @@ def adc1():
     napr.append(value)
 
 try:
-    while i != 2600:
+    T = time.clock()
+    while i != 2600: # Пока счетчик не достигнет значения 2600 считываем значения напряжения и заносим в список napr
         i = i + 1
         adc()
     GPIO.output(17, GPIO.LOW)
-    while j != 2800:
+    while j != 2800: # Пока счетчик не достигнет значения 2800 считываем значения напряжения и заносим в список napr
         j = j + 1
         adc1()
-    plt.plot(napr)
+    plt.plot(napr) # Используем список napr в качестве данных для графика
     plt.show()
 
     napr1 = [str(item) for item in napr] # элементы списка napr преобразуем в строки
 
     with open("data.txt", "w") as f: # создаем файл со значениями напряжения
         f.write("\n".join(napr1))
+    print(T)
 finally:
     GPIO.cleanup(led)
     GPIO.cleanup(dac)
