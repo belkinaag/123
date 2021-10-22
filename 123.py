@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import time
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -57,22 +58,50 @@ def adc1():
     napr.append(value)
 
 try:
-    T = time.clock()
-    while i != 2600: # Пока счетчик не достигнет значения 2600 считываем значения напряжения и заносим в список napr
+    while i != 2800: # Пока счетчик не достигнет значения 2800 считываем значения напряжения и заносим в список napr
         i = i + 1
         adc()
     GPIO.output(17, GPIO.LOW)
-    while j != 2800: # Пока счетчик не достигнет значения 2800 считываем значения напряжения и заносим в список napr
+    while j != 3200: # Пока счетчик не достигнет значения 3200 считываем значения напряжения и заносим в список napr
         j = j + 1
         adc1()
-    plt.plot(napr) # Используем список napr в качестве данных для графика
-    plt.show()
-
+    
     napr1 = [str(item) for item in napr] # элементы списка napr преобразуем в строки
-
     with open("data.txt", "w") as f: # создаем файл со значениями напряжения
-        f.write("\n".join(napr1))
-    print(T)
+         f.write("\n".join(napr1))
+
+    T = np.linspace(0, 60, num = 6000) # создаем массив времени 
+    
+    dats_array = np.loadtxt("data.txt", dtype=int)
+
+    dats_array = 3.3 / 256 * dats_array
+
+    fig, ax = plt.subplots(figsize=(16,10), dpi =400)
+    ax.plot(T, dats_array, label = 'линия интерполяции', markevery = 125, marker = '.', markersize = 15) # передаем в качестве аргументов функции plot массив времени и массив значений времени
+    ax.set_xlabel('t, c')
+    ax.set_ylabel('U(t), В')
+    ax.set_title("Зависимость напряжения на конденсаторе от времени")
+    ax.legend()
+    ax.grid()
+
+    plt.text(10, 1.25, "Время зарядки 28 с; разрядки - 32 с", fontsize=15)
+
+    ax.minorticks_on()
+
+
+    ax.grid(which='major',
+        color = 'k', 
+        linewidth = 2)
+
+    ax.grid(which='minor', 
+        color = 'k', 
+        linestyle = ':')
+
+    fig.savefig("1.svg")
+    fig.savefig("1.png")
+    plt.show()
+    
+
 finally:
     GPIO.cleanup(led)
     GPIO.cleanup(dac)
